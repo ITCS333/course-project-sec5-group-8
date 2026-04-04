@@ -9,24 +9,28 @@
 <html lang="en">
 <head>
     <!-- TODO: Add the 'meta' tag for character encoding (UTF-8). -->
-    
+    <meta charset="UTF-8" >
+
     <!-- TODO: Add the responsive 'viewport' meta tag.
          The 'name' should be 'viewport' and the 'content' should set the 'width' to 'device-width'
          and the 'initial-scale' to '1.0'. -->
+         <meta name="viewport" content="width=device-width, initial-scale=1.0" >
 
     <!-- TODO: Add a title, e.g., "Manage Resources". -->
-
+    <title>Manage Resources</title>
     <!-- TODO: Link to your CSS framework or stylesheet. -->
+    <link src="stylesheet" href="style.css">
 
     <!-- TODO: Link this script file:
          <script src="admin.js" defer></script> -->
+         <script src="admin.js" defer></script>
 </head>
 <body>
 
     <!-- TODO: Create a 'header' with a main heading ('h1') "Manage Course Resources". -->
-
+    <h1>Manage Course Resources</h1>
     <!-- TODO: Create the 'main' content area. -->
-
+    <main>
         <!-- Section 1: Add/Edit Resource Form -->
         <!-- TODO: Create a 'section' for the form. -->
             <!-- TODO: Add a sub-heading ('h2') "Add a New Resource". -->
@@ -53,7 +57,26 @@
                 <!-- End of fieldset. -->
             <!-- End of form. -->
         <!-- End of form section. -->
+        <section>
+            <h2>Add a New Resource</h2>
 
+            <form id="resource-form">
+                <fieldset>
+                    <legend>Resource Details</legend>
+                    <label>resource-title</label>
+                    <input id="resource-title" type="text" required>
+
+                    <label>resource-description</label>
+                    <textarea id="resource-description"></textarea>
+
+                    <label>resource-link</label>
+                    <input id="resource-link" type="url" required>
+
+                    <button id="add-resource" type="submit" >Add Resource</button>
+                </fieldset>
+            </form>
+        </section>
+        
 
         <!-- Section 2: Existing Resources List -->
         <!-- TODO: Create a 'section' to display the list of current resources. -->
@@ -85,6 +108,33 @@
             <!-- End of table. -->
         <!-- End of resources list section. -->
 
+        <section>
+            <h2>Existing Resources</h2>
+
+            <table id="resources-table">
+                <thead>
+                    <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Link</th>
+                    <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="resources-tbody">
+                    <tr>
+                        <td></td> <!--title-->
+                        <td></td> <!--description-->
+                        <td></td> <!--link-->
+                        <td>
+                            <button class="edit-btn" id="data-id">Edit</button>
+                            <button class="delete-btn" id="data-id">Delete</button>
+                        </td> <!--action-->
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </main>
     <!-- End of main. -->
 </body>
 </html>
