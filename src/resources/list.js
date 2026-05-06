@@ -24,7 +24,23 @@
  * `details.html?id=${id}` so the detail page knows which resource to load.
  */
 function createResourceArticle(resource) {
-  // ... your implementation here ...
+  const article = document.createElement("article");
+
+  const title = document.createElement("h2");
+  title.textContent = resource.title;
+
+  const description = document.createElement("p");
+  description.textContent = resource.description;
+
+  const link = document.createElement("a");
+  link.textContent = "View Resource & Discussion";
+  link.href = `details.html?id=${resource.id}`;
+
+  article.appendChild(title);
+  article.appendChild(description);
+  article.appendChild(link);
+
+  article;
 }
 
 /**
@@ -40,7 +56,16 @@ function createResourceArticle(resource) {
  *    - Append the returned <article> element to the list section.
  */
 async function loadResources() {
-  // ... your implementation here ...
+  const response = await fetch('./api/index.php');
+  const result = await response.json();
+
+  const listSection = document.getElementById("resource-list-section");
+  listSection.innerHTML = "";
+
+  result.data.forEach(resource => {
+    const article = createResourceArticle(resource);
+    listSection.appendChild(article);
+  });
 }
 
 // --- Initial Page Load ---
