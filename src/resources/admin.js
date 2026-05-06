@@ -56,12 +56,12 @@ function createResourceRow(resource) {
  *    append the returned <tr> to the table body.
  */
 function renderTable() {
-  const tbody = document.getElementById("#resources-tbody");
+  const tbody = document.getElementById("resources-tbody");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
   resources.forEach(resource => {
-    const tr = createResourceRow(resource);
-    tbody.appendChild(tr);
+    tbody.appendChild(createResourceRow(resource));
   });
 }
 
