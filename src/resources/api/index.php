@@ -64,18 +64,28 @@
 
 // TODO: Set headers for JSON response and CORS
 // Set Content-Type to application/json
+header('Content-Type: application/json');
 // Allow cross-origin requests (CORS) if needed
+header('Access-Control-Allow-Origin: *');
 // Allow specific HTTP methods (GET, POST, PUT, DELETE, OPTIONS)
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 // Allow specific headers (Content-Type, Authorization)
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
 
 // TODO: Handle preflight OPTIONS request
 // If the request method is OPTIONS, return 200 status and exit
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
 
 
 // TODO: Include the database connection file
 // The Database class lives at src/resources/api/config/Database.php
 // require_once './config/Database.php';
+
 
 
 // TODO: Get the PDO database connection
