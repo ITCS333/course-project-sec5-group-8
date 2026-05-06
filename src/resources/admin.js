@@ -57,11 +57,11 @@ function createResourceRow(resource) {
  */
 function renderTable() {
   const tbody = document.getElementById("resources-tbody");
-  if (!tbody) return;
   tbody.innerHTML = "";
 
   resources.forEach(resource => {
-    tbody.appendChild(createResourceRow(resource));
+    const tr = createResourceRow(resource);
+    tbody.appendChild(tr);
   });
 }
 
