@@ -120,26 +120,25 @@ function renderComments() {
  * 7. Clear the textarea.
  */
 function handleAddComment(event) {
-    event.preventDefault();
+  event.preventDefault();
 
-    const textarea = document.getElementById("new-comment");
-    const commentText = textarea.value.trim();
+  const textarea = document.getElementById("new-comment");
+  const commentText = textarea.value.trim();
 
-    if (!commentText) 
-      return;
+  if (!commentText) return;
 
-    fetch('./api/index.php?action=comment', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            resource_id: currentResourceId,
-            author: 'Student',
-            text: commentText
-        })
+  fetch('./api/index.php?action=comment', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      resource_id: currentResourceId,
+      author: 'Student',
+      text: commentText
     })
-    .then(res => res.json())
+  })
+    .then(response => response.json())
     .then(newComment => {
         currentComments.push(newComment);
         renderComments();

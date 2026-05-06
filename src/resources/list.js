@@ -40,7 +40,7 @@ function createResourceArticle(resource) {
   article.appendChild(description);
   article.appendChild(link);
 
-  returnarticle;
+  return article;
 }
 
 /**
@@ -62,12 +62,10 @@ async function loadResources() {
   const listSection = document.getElementById("resource-list-section");
   listSection.innerHTML = "";
 
-  if (result.success) {
-    result.data.forEach(resource => {
+  result.data.forEach(resource => {
     const article = createResourceArticle(resource);
     listSection.appendChild(article);
-    });
-  }
+  });
 }
 
 // --- Initial Page Load ---
