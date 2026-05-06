@@ -120,13 +120,13 @@ function renderComments() {
  * 7. Clear the textarea.
  */
 function handleAddComment(event) {
-  document.getElementById("comment-form").addEventListener("submit", function (event) {
     event.preventDefault();
 
     const textarea = document.getElementById("new-comment");
     const commentText = textarea.value.trim();
 
-    if (!commentText) return;
+    if (!commentText) 
+      return;
 
     fetch('./api/index.php?action=comment', {
         method: 'POST',
@@ -139,13 +139,12 @@ function handleAddComment(event) {
             text: commentText
         })
     })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(newComment => {
         currentComments.push(newComment);
         renderComments();
         textarea.value = "";
     });
-});
 }
 
 /**
@@ -171,31 +170,32 @@ function handleAddComment(event) {
  * 6. If the resource is not found, display an error in the title element.
  */
 async function initializePage() {
-  currentResourceId = getResourceIdFromURL();
+    currentResourceId = getResourceIdFromURL();
 
-if (!currentResourceId) 
-    document.getElementById("resource-title").textContent = "Resource not found.";
-else {
-    Promise.all([
+    if (!currentResourceId) {
+        document.getElementById("resource-title").textContent = "Resource not found.";
+        return;
+    }
+
+    const [resourceRes, commentsRes] = await Promise.all([
         fetch(`./api/index.php?id=${currentResourceId}`),
         fetch(`./api/index.php?resource_id=${currentResourceId}&action=comments`)
-    ])
-    .then(responses => Promise.all(responses.map(r => r.json())))
-    .then(([resourceData, commentsData]) => {
+    ]);
 
-        currentComments = commentsData.success ? commentsData.data : [];
+    const resourceData = await resourceRes.json();
+    const commentsData = await commentsRes.json();
 
-        if (resourceData.success && resourceData.data) {
-            renderResourceDetails(resourceData.data);
-            renderComments();
+    currentComments = commentsData.success ? commentsData.data : [];
 
-            document.getElementById("comment-form")
-                .addEventListener("submit", handleAddComment);
-        } 
-        else
-          document.getElementById("resource-title").textContent = "Resource not found.";
-    });
-}
+    if (resourceData.success && resourceData.data) {
+        renderResourceDetails(resourceData.data);
+        renderComments();
+
+        document.getElementById("comment-form")
+            .addEventListener("submit", handleAddComment);
+    } 
+    else 
+        document.getElementById("resource-title").textContent = "Resource not found.";
 }
 
 // --- Initial Page Load ---
