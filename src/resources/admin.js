@@ -17,9 +17,9 @@ let resources = [];
 
 // --- Element Selections ---
 // TODO: Select the resource form ('#resource-form').
-let resourceForm = document.querySelector('#resource-form');
+let resourceForm = null;
 // TODO: Select the resources table body ('#resources-tbody').
-let resourcesTbody = document.querySelector('#resources-tbody');
+let resourcesTbody = null;
 // --- Functions ---
 
 /**
@@ -56,7 +56,7 @@ function createResourceRow(resource) {
  *    append the returned <tr> to the table body.
  */
 function renderTable() {
-  const tbody = document.getElementById("resources-tbody");
+  const tbody = resourcesTbody || document.getElementById("resources-tbody");
   tbody.innerHTML = "";
 
   resources.forEach(resource => {
