@@ -56,12 +56,13 @@ function createResourceRow(resource) {
  *    append the returned <tr> to the table body.
  */
 function renderTable() {
-  const tbody = resourcesTbody || document.getElementById("resources-tbody");
-  tbody.innerHTML = "";
+  const tbody = document.querySelector('#resources-tbody');
+
+  tbody.innerHTML = '';
 
   resources.forEach(resource => {
-    const tr = createResourceRow(resource);
-    tbody.appendChild(tr);
+    const row = createResourceRow(resource);
+    tbody.appendChild(row);
   });
 }
 
@@ -91,7 +92,6 @@ function handleAddResource(event) {
   const title = document.querySelector('#resource-title').value;
   const description = document.querySelector('#resource-description').value;
   const link = document.querySelector('#resource-link').value; 
-
   const editId = resourceForm.getAttribute('data-edit-id');
 
   if (editId) {
