@@ -288,6 +288,7 @@ function createResource($db, $data) {
     if ($stmt->rowCount() > 0) {
         $newId = $db->lastInsertId();
         sendResponse(['success' => true, 'message' => 'Resource created successfully.', 'id' => $newId], 201);
+        return;
     } 
     sendResponse(['success' => false, 'message' => 'Failed to create resource.'], 500);
 }
@@ -348,6 +349,14 @@ function updateResource($db, $data) {
 
     if (isset($data['link'])) {
         $link = trim($data['link']);
+
+        if (!filter_var($link, FILTER_VALIDATE_URL)) {
+            sendResponse(['success' => false, 'message' => 'Invalid URL provided.'], 400);
+            return;
+        }
+
+        $fieldsToUpdate[] = 'link = ?';
+        $params[] = $link;
     }
 
     // TODO: If link is being updated, validate it with FILTER_VALIDATE_URL
@@ -407,17 +416,36 @@ function updateResource($db, $data) {
 function deleteResource($db, $resourceId) {
     // TODO: Validate that $resourceId is provided and is numeric
     // If not, return error response with HTTP 400
+    if (empty($resourceId) || !is_numeric($resourceId)) {
+        sendResponse(['success' => false, 'message' => 'Invalid resource ID.'], 400);
+        return;
+    }
 
     // TODO: Check if the resource exists — SELECT by id
     // If not found, return error response with HTTP 404
+    $stmt = $db->prepare("SELECT id FROM resources WHERE id = ?");
+    $stmt->execute([$resourceId]);
+
+    if ($stmt->rowCount() === 0) {
+        sendResponse(['success' => false, 'message' => 'Resource not found.'], 404);
+        return;
+    }
 
     // TODO: Prepare DELETE query
     // DELETE FROM resources WHERE id = ?
+    $stmt = $db->prepare("DELETE FROM resources WHERE id = ?");
 
     // TODO: Bind $resourceId and execute
+    $stmt->execute([$resourceId]);
 
     // TODO: If rowCount() > 0, return success response with HTTP 200
     // If failed, return error response with HTTP 500
+    if ($stmt->rowCount() > 0) {
+        sendResponse(['success' => true, 'message' => 'Resource deleted successfully.']);
+        return;
+    }
+    sendResponse(['success' => false, 'message' => 'Failed to delete resource.'], 500);
+    
 }
 
 
@@ -441,19 +469,32 @@ function deleteResource($db, $resourceId) {
 function getCommentsByResourceId($db, $resourceId) {
     // TODO: Validate that $resourceId is provided and is numeric
     // If not, return error response with HTTP 400
+    if (empty($resourceId) || !is_numeric($resourceId)) {
+        sendResponse(['success' => false, 'message' => 'Invalid resource ID.'], 400);
+        return;
+    }
 
     // TODO: Prepare SQL query
     // SELECT id, resource_id, author, text, created_at
     // FROM comments_resource
     // WHERE resource_id = ?
     // ORDER BY created_at ASC
+    $stmt = $db->prepare(
+        "SELECT id, resource_id, author, text, created_at
+         FROM comments_resource
+         WHERE resource_id = ?
+         ORDER BY created_at ASC"
+    );
 
     // TODO: Bind $resourceId and execute
+    $stmt->execute([$resourceId]);
 
     // TODO: Fetch all results as an associative array
+    $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // TODO: Return success response — always return an array,
     //       even if empty (no comments is not an error)
+    sendResponse(['success' => true, 'data' => $comments]);
 }
 
 
@@ -477,23 +518,49 @@ function createComment($db, $data) {
     // TODO: Validate required fields — resource_id, author, and text
     // must all be present and not empty
     // If any are missing, return error response with HTTP 400
+    if (empty($data['resource_id']) || empty($data['author']) || empty($data['text'])) {
+        sendResponse(['success' => false, 'message' => 'Missing required fields: resource_id, author, and text are all required.'], 400);
+        return;
+    }
 
     // TODO: Validate that resource_id is numeric
     // If not, return error response with HTTP 400
+    if (!is_numeric($data['resource_id'])) {
+        sendResponse(['success' => false, 'message' => 'Invalid resource ID.'], 400);
+        return;
+    }
 
     // TODO: Check that the resource exists in the resources table
     // If not found, return error response with HTTP 404
+    $stmt = $db->prepare("SELECT id FROM resources WHERE id = ?");
+    $stmt->execute([$data['resource_id']]);
+    if ($stmt->rowCount() === 0) {
+        sendResponse(['success' => false, 'message' => 'Resource not found.'], 404);
+        return;
+    }
 
     // TODO: Sanitize author and text — trim whitespace
+    $author = trim($data['author']);
+    $text   = trim($data['text']);
 
     // TODO: Prepare INSERT query
     // INSERT INTO comments_resource (resource_id, author, text) VALUES (?, ?, ?)
+    $stmt = $db->prepare(
+        "INSERT INTO comments_resource (resource_id, author, text) VALUES (?, ?, ?)"
+    );
 
     // TODO: Bind resource_id, author, and text; then execute
+    $stmt->execute([$data['resource_id'], $author, $text]);
 
     // TODO: If rowCount() > 0, return success response with HTTP 201
     //       and include the new id from $db->lastInsertId()
     // If failed, return error response with HTTP 500
+    if ($stmt->rowCount() > 0) {
+        $newId = $db->lastInsertId();
+        sendResponse(['success' => true, 'message' => 'Comment created successfully.', 'id' => $newId], 201);
+    }
+    
+    sendResponse(['success' => false, 'message' => 'Failed to create comment.'], 500);
 }
 
 
@@ -512,17 +579,35 @@ function createComment($db, $data) {
 function deleteComment($db, $commentId) {
     // TODO: Validate that $commentId is provided and is numeric
     // If not, return error response with HTTP 400
+    if (empty($commentId) || !is_numeric($commentId)) {
+        sendResponse(['success' => false, 'message' => 'Invalid comment ID.'], 400);
+        return;
+    }
 
     // TODO: Check if the comment exists in comments_resource — SELECT by id
     // If not found, return error response with HTTP 404
+    $stmt = $db->prepare("SELECT id FROM comments_resource WHERE id = ?");
+    $stmt->execute([$commentId]);
+    if ($stmt->rowCount() === 0) {
+        sendResponse(['success' => false, 'message' => 'Comment not found.'], 404);
+        return;
+    }
 
     // TODO: Prepare DELETE query
     // DELETE FROM comments_resource WHERE id = ?
+    $stmt = $db->prepare("DELETE FROM comments_resource WHERE id = ?");
 
     // TODO: Bind $commentId and execute
+    $stmt->execute([$commentId]);
 
     // TODO: If rowCount() > 0, return success response with HTTP 200
     // If failed, return error response with HTTP 500
+    if ($stmt->rowCount() > 0) {
+        sendResponse(['success' => true, 'message' => 'Comment deleted successfully.'], 200);
+    }
+    
+    sendResponse(['success' => false, 'message' => 'Failed to delete comment.'], 500);
+    
 }
 
 
@@ -537,45 +622,73 @@ try {
 
         // If action === 'comments', return all comments for a resource
         // TODO: Get resource_id from $_GET and call getCommentsByResourceId()
+        if ($action === 'comments') {
+            getCommentsByResourceId($db, $resource_id);
+            return;
+        }
 
         // If 'id' is present in $_GET, return a single resource
         // TODO: Call getResourceById() with $_GET['id']
+        if (!empty($id)) {
+            getResourceById($db, $id);
+            return;
+        }
 
         // Otherwise, return all resources (supports ?search=, ?sort=, ?order=)
         // TODO: Call getAllResources()
+        getAllResources($db);
 
     } elseif ($method === 'POST') {
 
         // If action === 'comment', create a new comment
         // TODO: Call createComment() with the decoded request body
+        if ($action === 'comment') {
+            createComment($db, $data);
+            return;
+        }
 
         // Otherwise, create a new resource
         // TODO: Call createResource() with the decoded request body
+        createResource($db, $data);
+        return;
 
     } elseif ($method === 'PUT') {
 
         // Update an existing resource
         // TODO: Call updateResource() with the decoded request body
+        updateResource($db, $data);
+        return;
 
     } elseif ($method === 'DELETE') {
 
         // If action === 'delete_comment', delete a single comment
         // TODO: Get comment_id from $_GET and call deleteComment()
+        if ($action === 'delete_comment') {
+            deleteComment($db, $comment_id);
+            return;
+        }
 
         // Otherwise, delete a resource
         // TODO: Get id from $_GET and call deleteResource()
+        deleteResource($db, $id);
+        return;
 
     } else {
         // TODO: Return HTTP 405 Method Not Allowed for unsupported methods
+        sendResponse(['success' => false, 'message' => 'Method not allowed.'], 405);
     }
 
 } catch (PDOException $e) {
     // TODO: Log the error with error_log()
     // Return a generic HTTP 500 error — do NOT expose $e->getMessage() to the client
+        error_log("Database error: " . $e->getMessage());
+        sendResponse(['success' => false, 'message' => 'An internal server error occurred.'], 500);
 
 } catch (Exception $e) {
     // TODO: Log the error with error_log()
     // Return HTTP 500 error response using sendResponse()
+    error_log("General error: " . $e->getMessage());
+    sendResponse(['success' => false, 'message' => 'An internal server error occurred.'], 500);
 }
 
 
@@ -591,10 +704,16 @@ try {
  */
 function sendResponse($data, $statusCode = 200) {
     // TODO: Set the HTTP status code using http_response_code()
+    http_response_code($statusCode);
 
     // TODO: Ensure $data is an array; if not, wrap it
+    if (!is_array($data)) {
+        $data = ['success' => false, 'message' => 'Invalid response data.'];
+    }
 
     // TODO: Echo json_encode($data) and call exit
+    echo json_encode($data);
+    exit();
 }
 
 
@@ -607,6 +726,7 @@ function sendResponse($data, $statusCode = 200) {
 function validateUrl($url) {
     // TODO: Use filter_var($url, FILTER_VALIDATE_URL)
     // Return true if valid, false otherwise
+    return filter_var($url, FILTER_VALIDATE_URL) !== false;
 }
 
 
@@ -619,6 +739,7 @@ function validateUrl($url) {
 function sanitizeInput($data) {
     // TODO: trim() → strip_tags() → htmlspecialchars(ENT_QUOTES, 'UTF-8')
     // Return the sanitized string
+    return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
 }
 
 
@@ -633,6 +754,11 @@ function validateRequiredFields($data, $requiredFields) {
     // TODO: Loop through $requiredFields
     // Collect any that are absent or empty in $data into a $missing array
     // Return ['valid' => (count($missing) === 0), 'missing' => $missing]
+    $missing = [];
+    foreach ($requiredFields as $field) {
+        if (empty($data[$field])) {
+            $missing[] = $field;
+        }
+    }
+    return ['valid' => (count($missing) === 0), 'missing' => $missing];
 }
-
-?>
