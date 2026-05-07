@@ -85,25 +85,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // TODO: Include the database connection file
 // The Database class lives at src/resources/api/config/Database.php
 // require_once './config/Database.php';
+require_once './config/Database.php';
 
 
 
 // TODO: Get the PDO database connection
 // $database = new Database();
 // $db = $database->getConnection();
+$database = new Database();
+$db = $database->getConnection();
 
 
 // TODO: Get the HTTP request method
 // $method = $_SERVER['REQUEST_METHOD'];
+$method = $_SERVER['REQUEST_METHOD'];
 
 
 // TODO: Get the request body for POST and PUT requests
 // $rawData = file_get_contents('php://input');
 // $data = json_decode($rawData, true);
+$rawData = file_get_contents('php://input');
+$data = json_decode($rawData, true);
 
 
 // TODO: Parse query parameters from $_GET
 // Get 'action', 'id', 'resource_id', 'comment_id'
+$action = $_GET['action'] ?? '';
+$id = $_GET['id'] ?? null;
+$resource_id = $_GET['resource_id'] ?? null;
+$comment_id = $_GET['comment_id'] ?? null;
+
 
 
 // ============================================================================
@@ -125,32 +136,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 function getAllResources($db) {
     // TODO: Initialize the base SQL query
     // SELECT id, title, description, link, created_at FROM resources
+    $query = "SELECT id, title, description, link, created_at FROM resources";
 
     // TODO: Check if search parameter exists in $_GET
     // If yes, add WHERE clause using LIKE to search title and description
     // Use OR to search both fields
+    $search = $_GET['search'] ?? '';
+    if (!empty($search)) 
+        $query .= " WHERE title LIKE :search OR description LIKE :search";
 
     // TODO: Validate the sort parameter
     // Allowed values: title, created_at
     // Default to 'created_at' if not provided or invalid
+    $allowedSort = ['title', 'created_at'];
+    $sort = $_GET['sort'] ?? 'created_at';
+    if (!in_array($sort, $allowedSort))
+        $sort = 'created_at';
 
     // TODO: Validate the order parameter
     // Allowed values: asc, desc
     // Default to 'desc' if not provided or invalid
+    $allowedOrder = ['asc', 'desc'];
+    $order = strtolower($_GET['order'] ?? 'desc');
+    if (!in_array($order, $allowedOrder))
+        $order = 'desc';
 
     // TODO: Add ORDER BY clause to the query
+    $query .= " ORDER BY {$sort} {$order}";
 
     // TODO: Prepare the statement using PDO
+    $stmt = $db->prepare($query);
 
     // TODO: If a search parameter was used, bind it with % wildcards
     // e.g., $stmt->bindValue(':search', '%' . $search . '%')
+    if (!empty($search)) 
+        $stmt->bindValue(':search', '%' . $search . '%');
 
     // TODO: Execute the query
+    $stmt->execute();
 
     // TODO: Fetch all results as an associative array
+    $resources = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // TODO: Return JSON response using sendResponse()
     // e.g., sendResponse(['success' => true, 'data' => $resources]);
+    sendResponse(['success' => true, 'data' => $resources]);
 }
 
 
@@ -169,16 +199,27 @@ function getAllResources($db) {
 function getResourceById($db, $resourceId) {
     // TODO: Validate that $resourceId is provided and is numeric
     // If not, return error response with HTTP 400
+        if (empty($resourceId) || !is_numeric($resourceId)) {
+            sendResponse(['success' => false, 'message' => 'Invalid resource ID.'], 400);
+            return;
+        }
 
     // TODO: Prepare SQL query
     // SELECT id, title, description, link, created_at FROM resources WHERE id = ?
-
-    // TODO: Bind $resourceId and execute
+    $query = "SELECT id, title, description, link, created_at FROM resources WHERE id = ?";
+    $stmt = $db->prepare($query);
+    $stmt->bindValue(1, $resourceId, PDO::PARAM_INT);
+    $stmt->execute();
 
     // TODO: Fetch the result as an associative array
+    $resource = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // TODO: If found, return success response with resource data
     // If not found, return error response with HTTP 404
+    if ($resource) 
+        sendResponse(['success' => true, 'data' => $resource]);
+    else 
+        sendResponse(['success' => false, 'message' => 'Resource not found.'], 404);
 }
 
 
@@ -199,22 +240,56 @@ function getResourceById($db, $resourceId) {
 function createResource($db, $data) {
     // TODO: Validate required fields — title and link must not be empty
     // If missing, return error response with HTTP 400
+    $requiredFields = ['title', 'link'];
+    $validation = validateRequiredFields($data, $requiredFields);
+
+    if (!$validation['valid']) {
+        $missingFields = implode(', ', $validation['missing']);
+        sendResponse(['success' => false, 'message' => "Missing required fields: {$missingFields}."], 400);
+        return;
+    }
 
     // TODO: Sanitize input — trim whitespace from all fields
+    if (is_array($data)) {
+        foreach ($data as $key => $value) {
+            if (is_string($value)) {
+                $data[$key] = trim($value);
+            }
+        }
+    }
+
 
     // TODO: Validate the link using filter_var with FILTER_VALIDATE_URL
     // If invalid, return error response with HTTP 400
+    if (!validateUrl($data['link'])) {
+        sendResponse(['success' => false, 'message' => 'Invalid URL provided.'], 400);
+        return;
+    }
 
     // TODO: Default description to empty string if not provided
+    $description = $data['description'] ?? '';
+
 
     // TODO: Prepare INSERT query
     // INSERT INTO resources (title, description, link) VALUES (?, ?, ?)
-
-    // TODO: Bind title, description, and link; then execute
+    $stmt = $db->prepare(
+        "INSERT INTO resources (title, description, link) VALUES (?, ?, ?)"
+    );
+    
+    $stmt->execute([
+        $data['title'],
+        $description,
+        $data['link']
+    ]);
 
     // TODO: If rowCount() > 0, return success response with HTTP 201
     //       and include the new id from $db->lastInsertId()
     // If failed, return error response with HTTP 500
+    if ($stmt->rowCount() > 0) {
+        $newId = $db->lastInsertId();
+        sendResponse(['success' => true, 'message' => 'Resource created successfully.', 'id' => $newId], 201);
+    } 
+    sendResponse(['success' => false, 'message' => 'Failed to create resource.'], 500);
 }
 
 
@@ -238,25 +313,79 @@ function createResource($db, $data) {
 function updateResource($db, $data) {
     // TODO: Validate that id is provided in $data
     // If not, return error response with HTTP 400
+    if (empty($data['id'])) {
+        sendResponse(['success' => false, 'message' => 'Resource ID is required for update.'], 400);
+        return;
+    }
+
+    $resourceId = $data['id'];
 
     // TODO: Check if the resource exists — SELECT by id
     // If not found, return error response with HTTP 404
+    $stmt = $db->prepare("SELECT id FROM resources WHERE id = ?");
+    $stmt->execute([$resourceId]);
+
+    if ($stmt->rowCount() === 0) {
+        sendResponse(['success' => false, 'message' => 'Resource not found.'], 404);
+        return;
+    }
 
     // TODO: Build UPDATE query dynamically for only the fields provided
     // (title, description, link — check which are present in $data)
     // If no fields to update, return error response with HTTP 400
+    $fieldsToUpdate = [];
+    $params = [];
+
+    if (isset($data['title'])) {
+        $fieldsToUpdate[] = 'title = ?';
+        $params[] = trim($data['title']);
+    }
+
+    if (isset($data['description'])) {
+        $fieldsToUpdate[] = 'description = ?';
+        $params[] = trim($data['description']);
+    }
+
+    if (isset($data['link'])) {
+        $link = trim($data['link']);
+    }
 
     // TODO: If link is being updated, validate it with FILTER_VALIDATE_URL
     // If invalid, return error response with HTTP 400
+    if (isset($data['link']) && !filter_var($link, FILTER_VALIDATE_URL)) {
+            sendResponse(['success' => false, 'message' => 'Invalid URL provided.'], 400);
+            return;
+    }
+
+    $fieldsToUpdate[] = 'link = ?';
+    $params[] = $link;
+    
+
+    if (empty($fieldsToUpdate)) {
+        sendResponse(['success' => false, 'message' => 'No valid fields provided for update.'], 400);
+        return;
+    }
 
     // TODO: Build the final SQL:
     // UPDATE resources SET field1 = ?, field2 = ?, ... WHERE id = ?
+    $sql = "UPDATE resources SET " . implode(', ', $fieldsToUpdate) . " WHERE id = ?";
+    $params[] = $resourceId; 
 
     // TODO: Prepare, bind all update values then bind id, and execute
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
 
     // TODO: Return success response with HTTP 200
     // If execution failed, return error response with HTTP 500
+    if ($stmt->rowCount() > 0){
+        sendResponse(['success' => true, 'message' => 'Resource updated successfully.']);
+        return;
+    }
+    
+    sendResponse(['success' => false, 'message' => 'Failed to update resource.'], 500);
+    
 }
+
 
 
 /**
