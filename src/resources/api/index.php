@@ -347,6 +347,8 @@ function updateResource($db, $data) {
         $params[] = trim($data['description']);
     }
 
+    // TODO: If link is being updated, validate it with FILTER_VALIDATE_URL
+    // If invalid, return error response with HTTP 400
     if (isset($data['link'])) {
         $link = trim($data['link']);
 
@@ -358,16 +360,6 @@ function updateResource($db, $data) {
         $fieldsToUpdate[] = 'link = ?';
         $params[] = $link;
     }
-
-    // TODO: If link is being updated, validate it with FILTER_VALIDATE_URL
-    // If invalid, return error response with HTTP 400
-    if (isset($data['link']) && !filter_var($link, FILTER_VALIDATE_URL)) {
-            sendResponse(['success' => false, 'message' => 'Invalid URL provided.'], 400);
-            return;
-    }
-
-    $fieldsToUpdate[] = 'link = ?';
-    $params[] = $link;
     
 
     if (empty($fieldsToUpdate)) {
@@ -558,6 +550,7 @@ function createComment($db, $data) {
     if ($stmt->rowCount() > 0) {
         $newId = $db->lastInsertId();
         sendResponse(['success' => true, 'message' => 'Comment created successfully.', 'id' => $newId], 201);
+        return;
     }
     
     sendResponse(['success' => false, 'message' => 'Failed to create comment.'], 500);
@@ -604,6 +597,7 @@ function deleteComment($db, $commentId) {
     // If failed, return error response with HTTP 500
     if ($stmt->rowCount() > 0) {
         sendResponse(['success' => true, 'message' => 'Comment deleted successfully.'], 200);
+        return;
     }
     
     sendResponse(['success' => false, 'message' => 'Failed to delete comment.'], 500);
@@ -623,6 +617,11 @@ try {
         // If action === 'comments', return all comments for a resource
         // TODO: Get resource_id from $_GET and call getCommentsByResourceId()
         if ($action === 'comments') {
+            if (empty($resource_id) || !is_numeric($resource_id)) {
+                sendResponse(['success' => false, 'message' => 'Invalid resource ID.'], 400);
+                return;
+            }
+
             getCommentsByResourceId($db, $resource_id);
             return;
         }
