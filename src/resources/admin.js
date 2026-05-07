@@ -17,9 +17,9 @@ let resources = [];
 
 // --- Element Selections ---
 // TODO: Select the resource form ('#resource-form').
-let resourceForm = null;
+let resourceForm = document.querySelector('#resource-form');
 // TODO: Select the resources table body ('#resources-tbody').
-let resourcesTbody = null;
+let resourcesTbody = document.querySelector('#resources-tbody');
 // --- Functions ---
 
 /**
