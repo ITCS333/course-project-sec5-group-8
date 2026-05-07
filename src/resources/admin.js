@@ -55,14 +55,12 @@ function createResourceRow(resource) {
  * 3. For each resource, call `createResourceRow()` and
  *    append the returned <tr> to the table body.
  */
-function renderTable() {
-  const tbody = document.querySelector('#resources-tbody');
+function renderTable(resourceList = resources) {
+  resourcesTbody.innerHTML = '';
 
-  tbody.innerHTML = '';
-
-  resources.forEach(resource => {
+  resourceList.forEach(resource => {
     const row = createResourceRow(resource);
-    tbody.appendChild(row);
+    resourcesTbody.appendChild(row);
   });
 }
 
