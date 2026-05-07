@@ -92,8 +92,8 @@ require_once './config/Database.php';
 // TODO: Get the PDO database connection
 // $database = new Database();
 // $db = $database->getConnection();
-$database = new Database();
-$db = $database->getConnection();
+require_once __DIR__ . '/config/Database.php';
+$db = getDBConnection();
 
 
 // TODO: Get the HTTP request method
