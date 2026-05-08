@@ -325,7 +325,9 @@ function updateResource($db, $data) {
     $stmt = $db->prepare("SELECT id FROM resources WHERE id = ?");
     $stmt->execute([$resourceId]);
 
-    if ($stmt->rowCount() === 0) {
+    $resource = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$resource) {
         sendResponse(['success' => false, 'message' => 'Resource not found.'], 404);
         return;
     }
@@ -416,7 +418,9 @@ function deleteResource($db, $resourceId) {
     $stmt = $db->prepare("SELECT id FROM resources WHERE id = ?");
     $stmt->execute([$resourceId]);
 
-    if ($stmt->rowCount() === 0) {
+    $resource = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$resource) {
         sendResponse(['success' => false, 'message' => 'Resource not found.'], 404);
         return;
     }
@@ -524,7 +528,10 @@ function createComment($db, $data) {
     // If not found, return error response with HTTP 404
     $stmt = $db->prepare("SELECT id FROM resources WHERE id = ?");
     $stmt->execute([$data['resource_id']]);
-    if ($stmt->rowCount() === 0) {
+
+    $resource = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$resource) {
         sendResponse(['success' => false, 'message' => 'Resource not found.'], 404);
         return;
     }
@@ -579,7 +586,10 @@ function deleteComment($db, $commentId) {
     // If not found, return error response with HTTP 404
     $stmt = $db->prepare("SELECT id FROM comments_resource WHERE id = ?");
     $stmt->execute([$commentId]);
-    if ($stmt->rowCount() === 0) {
+    
+    $comment = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$comment) {
         sendResponse(['success' => false, 'message' => 'Comment not found.'], 404);
         return;
     }
