@@ -103,7 +103,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 // $rawData = file_get_contents('php://input');
 // $data = json_decode($rawData, true);
 $rawData = file_get_contents('php://input');
-$data = json_decode($rawData, true) ?? [];
+$data = json_decode($rawData, true);
 
 
 // TODO: Parse query parameters from $_GET
@@ -140,9 +140,8 @@ function getAllResources($db) {
     // If yes, add WHERE clause using LIKE to search title and description
     // Use OR to search both fields
     $search = $_GET['search'] ?? '';
-    if (!empty($search)){
+    if (!empty($search)) 
         $query .= " WHERE title LIKE :search OR description LIKE :search";
-    }
 
     // TODO: Validate the sort parameter
     // Allowed values: title, created_at
@@ -654,11 +653,6 @@ try {
 
         // Update an existing resource
         // TODO: Call updateResource() with the decoded request body
-        if (!is_array($data)) {
-            sendResponse(['success' => false, 'message' => 'Invalid JSON body'], 400);
-            return;
-        }
-
         updateResource($db, $data);
         return;
 
@@ -666,21 +660,13 @@ try {
 
         // If action === 'delete_comment', delete a single comment
         // TODO: Get comment_id from $_GET and call deleteComment()
-        if ($comment_id === null || !is_numeric($comment_id)) {
-            sendResponse(['success' => false, 'message' => 'Invalid comment ID.'], 400);
+        if ($action === 'delete_comment') {
+            deleteComment($db, $comment_id);
             return;
-        }
-
-        deleteComment($db, $comment_id);
-        return;
         }
 
         // Otherwise, delete a resource
         // TODO: Get id from $_GET and call deleteResource()
-        if ($id === null || !is_numeric($id)) {
-            sendResponse(['success' => false, 'message' => 'Invalid resource ID.'], 400);
-            return;
-        }
         deleteResource($db, $id);
         return;
 
