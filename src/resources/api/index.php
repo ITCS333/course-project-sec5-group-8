@@ -555,7 +555,7 @@ function createComment($db, $data) {
     if ($stmt->rowCount() > 0) {
         $newId = $db->lastInsertId();
         sendResponse(['success' => true, 'message' => 'Comment created successfully.', 'id' => $newId], 201);
-        
+        return;
     }
     
     sendResponse(['success' => false, 'message' => 'Failed to create comment.'], 500);
