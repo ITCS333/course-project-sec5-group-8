@@ -85,14 +85,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // TODO: Include the database connection file
 // The Database class lives at src/resources/api/config/Database.php
 // require_once './config/Database.php';
-require_once './config/Database.php';
+require_once __DIR__ . '/config/Database.php';
 
 
 
 // TODO: Get the PDO database connection
 // $database = new Database();
 // $db = $database->getConnection();
-require_once __DIR__ . '/config/Database.php';
 $db = getDBConnection();
 
 
@@ -216,10 +215,11 @@ function getResourceById($db, $resourceId) {
 
     // TODO: If found, return success response with resource data
     // If not found, return error response with HTTP 404
-    if ($resource) 
+    if ($resource){
         sendResponse(['success' => true, 'data' => $resource]);
-    else 
-        sendResponse(['success' => false, 'message' => 'Resource not found.'], 404);
+        return;
+    }
+    sendResponse(['success' => false, 'message' => 'Resource not found.'], 404);
 }
 
 
@@ -314,7 +314,7 @@ function createResource($db, $data) {
 function updateResource($db, $data) {
     // TODO: Validate that id is provided in $data
     // If not, return error response with HTTP 400
-    if (empty($data['id'])) {
+    if (!isset($data['id']) || !is_numeric($data['id'])) {
         sendResponse(['success' => false, 'message' => 'Resource ID is required for update.'], 400);
         return;
     }
@@ -374,12 +374,11 @@ function updateResource($db, $data) {
 
     // TODO: Prepare, bind all update values then bind id, and execute
     $stmt = $db->prepare($sql);
-    $stmt->execute($params);
 
     // TODO: Return success response with HTTP 200
     // If execution failed, return error response with HTTP 500
-    if ($stmt->rowCount() > 0){
-        sendResponse(['success' => true, 'message' => 'Resource updated successfully.']);
+    if ($stmt->execute($params)){
+        sendResponse(['success' => true, 'message' => 'Resource updated successfully.'], 200);
         return;
     }
     
@@ -617,7 +616,7 @@ try {
         // If action === 'comments', return all comments for a resource
         // TODO: Get resource_id from $_GET and call getCommentsByResourceId()
         if ($action === 'comments') {
-            if (empty($resource_id) || !is_numeric($resource_id)) {
+            if ($resource_id === null || !is_numeric($resource_id)) {
                 sendResponse(['success' => false, 'message' => 'Invalid resource ID.'], 400);
                 return;
             }
@@ -628,7 +627,7 @@ try {
 
         // If 'id' is present in $_GET, return a single resource
         // TODO: Call getResourceById() with $_GET['id']
-        if (!empty($id)) {
+        if ($id !== null) {
             getResourceById($db, $id);
             return;
         }
