@@ -284,7 +284,7 @@ function createResource($db, $data) {
     // TODO: If rowCount() > 0, return success response with HTTP 201
     //       and include the new id from $db->lastInsertId()
     // If failed, return error response with HTTP 500
-    if ($stmt->rowCount() > 0) {
+    if ($stmt->fetchColumn() > 0) {
         $newId = $db->lastInsertId();
         sendResponse(['success' => true, 'message' => 'Resource created successfully.', 'id' => $newId], 201);
         return;
@@ -325,7 +325,7 @@ function updateResource($db, $data) {
     $stmt = $db->prepare("SELECT id FROM resources WHERE id = ?");
     $stmt->execute([$resourceId]);
 
-    if ($stmt->rowCount() === 0) {
+    if ($stmt->fetchColumn() === 0) {
         sendResponse(['success' => false, 'message' => 'Resource not found.'], 404);
         return;
     }
@@ -376,7 +376,8 @@ function updateResource($db, $data) {
 
     // TODO: Return success response with HTTP 200
     // If execution failed, return error response with HTTP 500
-    if ($stmt->execute($params)){
+    $stmt->execute($params);
+    if ($stmt->fetchColumn() > 0){
         sendResponse(['success' => true, 'message' => 'Resource updated successfully.'], 200);
         return;
     }
@@ -416,7 +417,7 @@ function deleteResource($db, $resourceId) {
     $stmt = $db->prepare("SELECT id FROM resources WHERE id = ?");
     $stmt->execute([$resourceId]);
 
-    if ($stmt->rowCount() === 0) {
+    if ($stmt->fetchColumn() === 0) {
         sendResponse(['success' => false, 'message' => 'Resource not found.'], 404);
         return;
     }
@@ -430,7 +431,7 @@ function deleteResource($db, $resourceId) {
 
     // TODO: If rowCount() > 0, return success response with HTTP 200
     // If failed, return error response with HTTP 500
-    if ($stmt->rowCount() > 0) {
+    if ($stmt->fetchColumn() > 0) {
         sendResponse(['success' => true, 'message' => 'Resource deleted successfully.']);
         return;
     }
@@ -524,7 +525,7 @@ function createComment($db, $data) {
     // If not found, return error response with HTTP 404
     $stmt = $db->prepare("SELECT id FROM resources WHERE id = ?");
     $stmt->execute([$data['resource_id']]);
-    if ($stmt->rowCount() === 0) {
+    if ($stmt->fetchColumn() === 0) {
         sendResponse(['success' => false, 'message' => 'Resource not found.'], 404);
         return;
     }
@@ -545,7 +546,7 @@ function createComment($db, $data) {
     // TODO: If rowCount() > 0, return success response with HTTP 201
     //       and include the new id from $db->lastInsertId()
     // If failed, return error response with HTTP 500
-    if ($stmt->rowCount() > 0) {
+    if ($stmt->fetchColumn() > 0) {
         $newId = $db->lastInsertId();
         sendResponse(['success' => true, 'message' => 'Comment created successfully.', 'id' => $newId], 201);
         return;
@@ -579,7 +580,7 @@ function deleteComment($db, $commentId) {
     // If not found, return error response with HTTP 404
     $stmt = $db->prepare("SELECT id FROM comments_resource WHERE id = ?");
     $stmt->execute([$commentId]);
-    if ($stmt->rowCount() === 0) {
+    if ($stmt->fetchColumn() === 0) {
         sendResponse(['success' => false, 'message' => 'Comment not found.'], 404);
         return;
     }
@@ -593,7 +594,7 @@ function deleteComment($db, $commentId) {
 
     // TODO: If rowCount() > 0, return success response with HTTP 200
     // If failed, return error response with HTTP 500
-    if ($stmt->rowCount() > 0) {
+    if ($stmt->fetchColumn() > 0) {
         sendResponse(['success' => true, 'message' => 'Comment deleted successfully.'], 200);
         return;
     }
