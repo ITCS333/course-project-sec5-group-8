@@ -55,13 +55,12 @@ function createResourceRow(resource) {
  * 3. For each resource, call `createResourceRow()` and
  *    append the returned <tr> to the table body.
  */
-function renderTable() {
-  const tbody = document.getElementById("resources-tbody");
-  tbody.innerHTML = "";
+function renderTable(resourceList = resources) {
+  resourcesTbody.innerHTML = '';
 
-  resources.forEach(resource => {
-    const tr = createResourceRow(resource);
-    tbody.appendChild(tr);
+  resourceList.forEach(resource => {
+    const row = createResourceRow(resource);
+    resourcesTbody.appendChild(row);
   });
 }
 
@@ -91,7 +90,6 @@ function handleAddResource(event) {
   const title = document.querySelector('#resource-title').value;
   const description = document.querySelector('#resource-description').value;
   const link = document.querySelector('#resource-link').value; 
-
   const editId = resourceForm.getAttribute('data-edit-id');
 
   if (editId) {
