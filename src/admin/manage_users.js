@@ -1,3 +1,4 @@
+
 /*
   Requirement: Add interactivity and data management to the Admin Portal.
 */
@@ -57,9 +58,13 @@ function renderTable(userArray) {
 async function handleChangePassword(event) {
   event.preventDefault();
 
-  const currentPassword = document.getElementById("current-password").value.trim();
-  const newPassword = document.getElementById("new-password").value.trim();
-  const confirmPassword = document.getElementById("confirm-password").value.trim();
+  const currentPasswordInput = document.getElementById("current-password");
+  const newPasswordInput = document.getElementById("new-password");
+  const confirmPasswordInput = document.getElementById("confirm-password");
+
+  const currentPassword = currentPasswordInput.value.trim();
+  const newPassword = newPasswordInput.value.trim();
+  const confirmPassword = confirmPasswordInput.value.trim();
 
   if (newPassword !== confirmPassword) {
     alert("Passwords do not match.");
@@ -98,8 +103,11 @@ async function handleChangePassword(event) {
       return;
     }
 
+    currentPasswordInput.value = "";
+    newPasswordInput.value = "";
+    confirmPasswordInput.value = "";
+
     alert("Password updated successfully!");
-    changePasswordForm.reset();
   } catch (error) {
     console.error(error);
     alert("Failed to update password.");
