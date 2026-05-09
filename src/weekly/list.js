@@ -13,6 +13,7 @@
 
 // --- Element Selections ---
 // TODO: Select the section for the week list using its id 'week-list-section'.
+const weekListSection = document.getElementById('week-list-section');
 
 // --- Functions ---
 
@@ -60,7 +61,7 @@ function createWeekArticle(week) {
    article.appendChild(descriptionP);
 
   const link = document.createElement('a');
-  link.href = 'details.html?id=${week.id}';
+  link.href = `details.html?id=${week.id}`;
   link.textContent = 'View Details & Discussion';
   article.appendChild(link);
 
@@ -101,4 +102,5 @@ async function loadWeeks() {
 
 // --- Initial Page Load ---
 loadWeeks();
+
 
