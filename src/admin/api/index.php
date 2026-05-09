@@ -29,8 +29,8 @@ function getUsers($db) {
         $params[':search'] = '%' . $_GET['search'] . '%';
     }
 
-    $allowedSort = ['name', 'email', 'is_admin'];
-    $sort = in_array($_GET['sort'] ?? '', $allowedSort) ? $_GET['sort'] : 'name';
+    $allowedSort = ['id', 'name', 'email', 'is_admin'];
+    $sort = in_array($_GET['sort'] ?? '', $allowedSort) ? $_GET['sort'] : 'id';
     $order = strtolower($_GET['order'] ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
 
     $query .= " ORDER BY $sort $order";

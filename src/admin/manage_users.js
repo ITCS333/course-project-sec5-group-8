@@ -71,7 +71,11 @@ async function handleChangePassword(event) {
     return;
   }
 
-  const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {};
+  const currentUser =
+    typeof localStorage !== "undefined"
+      ? JSON.parse(localStorage.getItem("currentUser")) || {}
+      : {};
+
   const id = currentUser.id || 1;
 
   try {
