@@ -3,18 +3,13 @@
 */
 
 let users = [];
-
 let listenersAttached = false;
-
-// --- Element Selections ---
 
 const userTableBody = document.getElementById("user-table-body");
 const addUserForm = document.getElementById("add-user-form");
 const changePasswordForm = document.getElementById("password-form");
 const searchInput = document.getElementById("search-input");
 const tableHeaders = document.querySelectorAll("#user-table thead th");
-
-// --- Functions ---
 
 function createUserRow(user) {
   const row = document.createElement("tr");
@@ -55,8 +50,7 @@ function renderTable(userArray) {
   userTableBody.innerHTML = "";
 
   userArray.forEach((user) => {
-    const row = createUserRow(user);
-    userTableBody.appendChild(row);
+    userTableBody.appendChild(createUserRow(user));
   });
 }
 
@@ -81,16 +75,16 @@ async function handleChangePassword(event) {
   const id = currentUser.id || 1;
 
   try {
-    const response = await fetch("../api/index.php?action=change_password", {
+    const response = await fetch("./api/index.php?action=change_password", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        id,
+        id: id,
         current_password: currentPassword,
-        new_password: newPassword,
-      }),
+        new_password: newPassword
+      })
     });
 
     const result = await response.json();
@@ -127,22 +121,22 @@ async function handleAddUser(event) {
   }
 
   try {
-    const response = await fetch("../api/index.php", {
+    const response = await fetch("./api/index.php", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        name,
-        email,
-        password,
-        is_admin,
-      }),
+        name: name,
+        email: email,
+        password: password,
+        is_admin: is_admin
+      })
     });
 
     const result = await response.json();
 
-    if (response.status !== 201 || result.success === false) {
+    if (!response.ok || result.success === false) {
       alert(result.message || "Failed to add user.");
       return;
     }
@@ -161,9 +155,13 @@ async function handleTableClick(event) {
   if (target.classList.contains("delete-btn")) {
     const id = target.dataset.id;
 
+    if (!confirm("Are you sure you want to delete this user?")) {
+      return;
+    }
+
     try {
-      const response = await fetch("../api/index.php?id=" + id, {
-        method: "DELETE",
+      const response = await fetch("./api/index.php?id=" + encodeURIComponent(id), {
+        method: "DELETE"
       });
 
       const result = await response.json();
@@ -183,7 +181,48 @@ async function handleTableClick(event) {
 
   if (target.classList.contains("edit-btn")) {
     const id = target.dataset.id;
-    alert("Edit user with ID: " + id);
+    const user = users.find((item) => String(item.id) === String(id));
+
+    if (!user) {
+      alert("User not found.");
+      return;
+    }
+
+    const newName = prompt("Enter new name:", user.name);
+    if (newName === null) return;
+
+    const newEmail = prompt("Enter new email:", user.email);
+    if (newEmail === null) return;
+
+    const newAdmin = prompt("Is admin? Enter 1 for yes or 0 for no:", user.is_admin);
+    if (newAdmin === null) return;
+
+    try {
+      const response = await fetch("./api/index.php", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id: id,
+          name: newName.trim(),
+          email: newEmail.trim(),
+          is_admin: Number(newAdmin)
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || result.success === false) {
+        alert(result.message || "Failed to update user.");
+        return;
+      }
+
+      await loadUsersAndInitialize();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update user.");
+    }
   }
 }
 
@@ -196,10 +235,10 @@ function handleSearch() {
   }
 
   const filteredUsers = users.filter((user) => {
-    const name = user.name.toLowerCase();
-    const email = user.email.toLowerCase();
-
-    return name.includes(searchTerm) || email.includes(searchTerm);
+    return (
+      user.name.toLowerCase().includes(searchTerm) ||
+      user.email.toLowerCase().includes(searchTerm)
+    );
   });
 
   renderTable(filteredUsers);
@@ -207,7 +246,6 @@ function handleSearch() {
 
 function handleSort(event) {
   const columnIndex = event.currentTarget.cellIndex;
-
   const properties = ["name", "email", "is_admin", null];
   const property = properties[columnIndex];
 
@@ -237,36 +275,23 @@ function handleSort(event) {
 
 async function loadUsersAndInitialize() {
   try {
-    const response = await fetch("../api/index.php");
+    const response = await fetch("./api/index.php");
 
     if (!response.ok) {
-      console.error("Failed to fetch users.");
       alert("Failed to load users.");
       return;
     }
 
     const result = await response.json();
-
     users = result.data || [];
 
     renderTable(users);
 
     if (!listenersAttached) {
-      if (changePasswordForm) {
-        changePasswordForm.addEventListener("submit", handleChangePassword);
-      }
-
-      if (addUserForm) {
-        addUserForm.addEventListener("submit", handleAddUser);
-      }
-
-      if (userTableBody) {
-        userTableBody.addEventListener("click", handleTableClick);
-      }
-
-      if (searchInput) {
-        searchInput.addEventListener("input", handleSearch);
-      }
+      changePasswordForm.addEventListener("submit", handleChangePassword);
+      addUserForm.addEventListener("submit", handleAddUser);
+      userTableBody.addEventListener("click", handleTableClick);
+      searchInput.addEventListener("input", handleSearch);
 
       tableHeaders.forEach((th) => {
         th.addEventListener("click", handleSort);
@@ -280,6 +305,5 @@ async function loadUsersAndInitialize() {
   }
 }
 
-// --- Initial Page Load ---
-
 loadUsersAndInitialize();
+
