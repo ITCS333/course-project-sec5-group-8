@@ -76,6 +76,10 @@ async function handleChangePassword(event) {
     return;
   }
 
+  currentPasswordInput.value = "";
+  newPasswordInput.value = "";
+  confirmPasswordInput.value = "";
+
   const currentUser =
     typeof localStorage !== "undefined"
       ? JSON.parse(localStorage.getItem("currentUser")) || {}
@@ -102,10 +106,6 @@ async function handleChangePassword(event) {
       alert(result.message || "Failed to update password.");
       return;
     }
-
-    currentPasswordInput.value = "";
-    newPasswordInput.value = "";
-    confirmPasswordInput.value = "";
 
     alert("Password updated successfully!");
   } catch (error) {
@@ -173,7 +173,7 @@ async function handleTableClick(event) {
 
     try {
       const response = await fetch("./api/index.php?id=" + encodeURIComponent(id), {
-        method: "DELETE"
+      method: "DELETE"
       });
 
       const result = await response.json();
@@ -318,4 +318,5 @@ async function loadUsersAndInitialize() {
 }
 
 loadUsersAndInitialize();
+
 
