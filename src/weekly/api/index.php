@@ -291,11 +291,11 @@ function createWeek(PDO $db, array $data): void
         INSERT INTO weeks (title, start_date, description, links)
         VALUES (?, ?, ?, ?)
     ");
-       $stmt->execute([$title, $start_date, $description, $linksJson]);
+       $result =$stmt->execute([$title, $start_date, $description, $linksJson]);
 
     // TODO: If rowCount() > 0, sendResponse HTTP 201 with the new id.
     // Otherwise sendResponse HTTP 500.
-  if ($stmt->rowCount() > 0) {
+  if ($result) {
 
     sendResponse([
         'success' => true,
@@ -331,7 +331,7 @@ function updateWeek(PDO $db, array $data): void
 {
     // TODO: Validate that $data['id'] is present.
     // If not, sendResponse HTTP 400.
-        if (empty($data['id'])) {
+        if (!isset($data['id']) || !is_numeric($data['id'])) {
         sendResponse(['success' => false, 'message' => 'id is required'], 400);
     }
 
@@ -343,7 +343,7 @@ function updateWeek(PDO $db, array $data): void
         $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
     $check->execute([$id]);
 
-    if ($check->rowCount() === 0) {
+    if (!$check->fetch()) {
         sendResponse(['success' => false, 'message' => 'Week not found'], 404);
     }
 
@@ -433,7 +433,7 @@ function deleteWeek(PDO $db, $id): void
      $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
     $check->execute([$id]);
 
-    if ($check->rowCount() === 0) {
+    if (!$check->fetch()) {
          sendResponse(['success' => false, 'message' => 'Week not found'], 404);
 
     }
@@ -446,7 +446,7 @@ function deleteWeek(PDO $db, $id): void
 
     // TODO: If rowCount() > 0, sendResponse HTTP 200.
     // Otherwise sendResponse HTTP 500.
-    if ($result && $stmt->rowCount() > 0) {
+    if ($result) {
         sendResponse(['success' => true, 'message' => 'Week deleted']);
 
     } else {
@@ -541,7 +541,7 @@ function createComment(PDO $db, array $data): void
          $check = $db->prepare("SELECT id FROM weeks WHERE id = ?");
     $check->execute([$week_id]);
 
-    if ($check->rowCount() === 0) {
+    if (!$check->fetch()) {
         sendResponse(['success' => false, 'message' => 'Week not found'], 404);
 
     }
@@ -554,13 +554,13 @@ function createComment(PDO $db, array $data): void
         VALUES (?, ?, ?)
     ");
 
-     $stmt->execute([$week_id, $author, $text]);
+     $result = $stmt->execute([$week_id, $author, $text]);
 
 
     // TODO: If rowCount() > 0, sendResponse HTTP 201 with the new id
     //       and the full new comment object.
     // Otherwise sendResponse HTTP 500.
-     if ($stmt->rowCount() > 0) {
+     if ($result) {
         sendResponse([
             'success' => true,
             'message' => 'Comment created successfully',
@@ -601,7 +601,7 @@ function deleteComment(PDO $db, $commentId): void
     $check = $db->prepare("SELECT id FROM comments_week WHERE id = ?");
     $check->execute([$commentId]);
 
-    if ($check->rowCount() === 0) {
+    if (!$check->fetch()) {
         sendResponse([
             'success' => false,
             'message' => 'Comment not found'
@@ -614,7 +614,7 @@ function deleteComment(PDO $db, $commentId): void
 
     // TODO: If rowCount() > 0, sendResponse HTTP 200.
     // Otherwise sendResponse HTTP 500.
-    if ($result && $stmt->rowCount() > 0) {
+    if ($result) {
         sendResponse([
             'success' => true,
             'message' => 'Comment deleted successfully'
