@@ -395,14 +395,15 @@ function updateWeek(PDO $db, array $data): void
 
     // TODO: Build: UPDATE weeks SET {clauses} WHERE id = ?
     // Prepare, bind all SET values, then bind id, and execute.
-      $stmt->execute($values);
+      $result =$stmt->execute($values);
 
     // TODO: sendResponse HTTP 200 on success, HTTP 500 on failure.
-    if ($stmt->rowCount() > 0) {
-        sendResponse(['success' => true, 'message' => 'Week updated successfully'], 200);
+
+    if ($result) {
+    sendResponse(['success' => true, 'message' => 'Week updated successfully'], 200);
     } else {
-        sendResponse(['success' => false, 'message' => 'Update failed'], 500);
-    }
+    sendResponse(['success' => false, 'message' => 'Update failed'], 500);
+    }   
 }
 
 
@@ -445,7 +446,7 @@ function deleteWeek(PDO $db, $id): void
 
     // TODO: If rowCount() > 0, sendResponse HTTP 200.
     // Otherwise sendResponse HTTP 500.
-    if ($stmt->rowCount() > 0) {
+    if ($result && $stmt->rowCount() > 0) {
         sendResponse(['success' => true, 'message' => 'Week deleted']);
 
     } else {
@@ -613,7 +614,7 @@ function deleteComment(PDO $db, $commentId): void
 
     // TODO: If rowCount() > 0, sendResponse HTTP 200.
     // Otherwise sendResponse HTTP 500.
-    if ($stmt->rowCount() > 0) {
+    if ($result && $stmt->rowCount() > 0) {
         sendResponse([
             'success' => true,
             'message' => 'Comment deleted successfully'
